@@ -4,12 +4,7 @@ from future import standard_library
 standard_library.install_aliases()
 from past.builtins import basestring
 from io import StringIO
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.converter import TextConverter
-from pdfminer.layout import LAParams
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdftypes import PDFException
-from pdfminer.psparser import PSException
+from PyPDF2 import PdfFileReader
 
 import concurrent.futures
 
@@ -44,18 +39,16 @@ def convert_miner(fname, pages=None):
         pagenums = set(pages)
 
     output = StringIO()
-    manager = PDFResourceManager()
-    converter = TextConverter(manager, output, laparams=LAParams())
-    interpreter = PDFPageInterpreter(manager, converter)
 
-    infile = file(fname, 'rb')
-    for page in PDFPage.get_pages(infile, pagenums):
-        try:
-            interpreter.process_page(page)
-        except:
-            pass
+    with open(fname, 'rb') as infile:
+        pdfReader = PdfFileReader(infile)
+        for page in range(pdfReader.numPages):
+            try:
+                pageObj = pdfReader.getPage(page)
+                output.write(pageObj.extractText() + '\n')
+            except:
+                pass
     infile.close()
-    converter.close()
     text = output.getvalue()
     output.close()
     text += '\n'
@@ -89,7 +82,7 @@ def main(path_or_paths, output_dir=None, verbose=1):
                     try:
                         futures.append(executor.submit(
                             convert_and_write, pdffile, output_dir, True))
-                    except (PDFException, PSException):
+                    except:
                         print("Skipping {0} due to PDF Exception".format(pdffile))
             else:
                 futures.append(executor.submit(convert_and_write, pdffile, output_dir, True, True))
