@@ -30,7 +30,4 @@ install:
 # command to run tests
 script: 
   - bash coverage.sh
-  - coverage run -a --source topicexplorer.server -m topicexplorer.server -p 8000 --no-browser ap.ini &
-  - bash server-coverage.sh $! 
-  - coverage report
 after_success: coveralls
