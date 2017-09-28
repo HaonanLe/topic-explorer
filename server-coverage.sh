@@ -1,6 +1,7 @@
 #!/bin/bash
 EXIT=0
 
+sleep 10
 echo "Pinging server in PID"
 echo $1
 kill -0 $1
